@@ -2,17 +2,20 @@
 
 #### Please note this is the first draft and has not been edited yet. Sorry for typos, rambling, etc.
 
-In brief, this is a script that takes an RSS feed of stories, runs a link through [bit.ly](http://bit.ly) and then tweets out the headline and bit.ly link when the RSS feed is updated. For various reasons, we have it set up to run on a cron every other minute, however, if you have a hook in your CMS to trigger scripts when a story is published you could configure this to run on those events.
+In brief, this is a script that takes an RSS feed of stories, runs a link through [bit.ly](http://bit.ly) and then tweets out the headline and bit.ly link when the RSS feed is updated.
+
+For various reasons, we have it set up to run on a cron every other minute, however, if you have a hook in your CMS to trigger scripts when a story is published you could configure this to run on those events.
 
 ## Table of contents
 
 * [Getting started](#getting-started)
   * [Assumptions](#assumptions)
   * [Dependancies](#dependancies)
+  * [Directory structure](#directory-structure)
 * [Code walkthrough](#code-walkthrough)
-  * [Notes](#notes)
   * [Tweepy](#tweepy)
   * [bitly_api](#bitly_api)
+  * [Notes](#notes)
 * [Cron](#cron)
 * [TL;DR](#tldr)
 
@@ -24,8 +27,8 @@ In brief, this is a script that takes an RSS feed of stories, runs a link throug
   * I have this running on Python 2.7.6, haven't tried 3
 * I did all of this on a Mac, no promises for PC users
 * You have a properly formatted RSS feed of content to use
-* Each story has a unique ID, headline and url
-* You have a bit.ly and Twitter accounts
+* Each story has a headline, url and unique ID (url could work)
+* You have bit.ly and Twitter accounts
 
 ### Dependancies
 
@@ -33,28 +36,42 @@ Included in the Python Standard Library
 
 * [logging](https://docs.python.org/2/library/logging.html)
 * [logging.handlers](https://docs.python.org/2/library/logging.handlers.html)
-* [urllib2](https://docs.python.org/2/library/logging.handlers.html)
+* [urllib2](https://docs.python.org/2/library/urllib2.html)
 * [socket](https://docs.python.org/2/library/socket.html)
 
 Need to be installed
 
 * [feedparser](https://github.com/kurtmckee/feedparser) - `pip install feeparser`
 * [tweepy](https://github.com/tweepy/tweepy) - `pip install tweepy`
-* [bitly_api](https://github.com/tweepy/tweepy) - `pip install bitly_api`
+* [bitly_api](https://github.com/bitly/bitly-api-python) - `pip install bitly_api`
+
+### Directory structure
+
+Here is my suggested directory structure:
+
+```python
+- tweet.py          # script
+- tweet.txt         # old ID list
+- logs              # logs folder
+|- tweet.log        # most recent logs
+|- tweet.log.1      # next most recent logs
+|- ...
+|- tweet.log.5      # oldest logs
+```
+
+You must create tweet.txt as the current script will not create that. I believe `open('tweet.txt', 'w+')` will do this but I have not tested it.
 
 ## Code walkthrough
-
-Before you begin, in your directory create an empty tweet.txt file.
 
 Please follow along with the code as I talk through it.
 
 Ok, so we import everything.
 
-Set up a path to log to. I made it absolute, you don't have to. Not really sure what the `__name__`, I borrowed this bit from a script @jheasly had. Set the level to debug. and set the formatting. Below is an example of this formatting.
+Set up a path to log to. I made it absolute, you don't have to. Not really sure what the `__name__` is, I borrowed this bit from a script @jheasly had. Set the level to debug. and set the formatting. Below is an example of this formatting.
 
 ![screen shot 2015-05-13 at 12 43 41 pm](https://cloud.githubusercontent.com/assets/4853944/7619470/c049f166-f96d-11e4-89db-27c7c49d6d75.png)
 
-The `logging.handlers.RotatingFileHandler()` line keeps the log situation under control so that logs don't pile up over time. I have it set to create five back up files, in addition to the initial one, with a max of 256kb each. This means that as the first log file, tweet.log, fills up it saves that file as tweet.log.1 and makes a new file called tweet.log and starts filling that up. This happens up through tweet.log.5 so you will have a fair amount of logs if it breaks.
+The `logging.handlers.RotatingFileHandler()` line keeps logs under control so that logs don't pile up over time. I have it set to create five back up files, in addition to the initial one, with a max of 256kb each. This means that as the first log file, tweet.log, fills up it saves that file as tweet.log.1 and makes a new file called tweet.log and starts filling that up. This happens up through tweet.log.5 so you will have a fair amount of logs if it breaks.
 
 Logging does allow you to print out the console if you would like but I prefer to not do that for two reasons. First, if you forget to comment it out and set it to run on a cron (more on that later) you will start to pile up Mail files. While these are easy to get rid of (`$ mail` then `$mail delete *` then `$mail q`) I prefer to avoid Mail all together. The second reason is that you can run a `tail -f PATH/TO/LOG/FILE` and that will print print out the log file as it runs to the console by following it, that's the `-f` part. The added bonus to this is that it's all getting saved to the file so you can go look at this later if needed. The added added bonus is that you don't have any `print` statements to deal with.
 
@@ -78,14 +95,14 @@ Now we test to see if there are any feed.entries. If there are no stories in the
 
 Just to be clear here is some pseudo code:
 
-```
+```python
 if there are stories:
     go do stuff
 else:
     log that there are "No entries"
 ```
 
-Now we need to deal with checking the unique IDs. For the Guard we have uniques story IDs coming from the CMS. Every CMS should have some sort of unique ID or string system to keep stories straight. URLs could also work as the unique ID but our IDs were shorter so I went with them.
+Now we need to deal with checking the unique IDs. For the Guard we have unique story IDs coming from the CMS. Every CMS should have some sort of unique ID or string system to keep stories straight. URLs could also work as the unique ID but our IDs were shorter so I went with them.
 
 So we set up an empty Python list. Then we fill it in with a for loop over the RSS data. So `id_list` is the new, incoming IDs.
 
@@ -93,13 +110,13 @@ Now we try and open a text file of the old IDs. The first time you run this you'
 
 Then we set a new variable `loop` to zero. Now we enter into a new loop. For every ID in the list of new IDs do the following.
 
-Check and see if the new ID is **not** in the old ID list. If the new ID is **not** in the new ID list then we need to tweet it because it's a new story.
+Then, check and see if the new ID is **not** in the old ID list. If the new ID is **not** in the new ID list then we need to tweet it because it's a new story.
 
 The else part of this if statement says to do nothing, because the ID is not new since it is already in the file.
 
 Let's take a step back and look at the pseudo code.
 
-```
+```python
 if there are stories:
     for each ID in the feed:
         if the ID is NOT in the old ID list:
@@ -120,7 +137,9 @@ So now we set stuff up to deal with the Twitter API. If you haven't worked with 
 
 To use the Twitter API you have to provide Tweepy with credentials so that it can authenticate you. Those need to be acquired directly from Twitter.
 
-To get those go to [apps.twitter.com](https://apps.twitter.com) and Create New App. Access level should be Read and Write. Then you need to generate tokens. You need four pieces of information from Twitter to authenticate. Those are Consumer Key, Consumer Secret, Access Token and Access Token Secret. See below image.
+To get those, go to [apps.twitter.com](https://apps.twitter.com) and Create New App. Access level should be Read and Write. Then you need to generate tokens.
+
+You need four pieces of information from Twitter to authenticate. Those are Consumer Key, Consumer Secret, Access Token and Access Token Secret. The blurry parts in the image below are the things that you need.
 
 ![screen shot 2015-05-13 at 1 32 24 pm](https://cloud.githubusercontent.com/assets/4853944/7620455/d9e8a7a0-f974-11e4-8d86-d0e36a2da2ef.png)
 
@@ -149,6 +168,7 @@ And that's about it.
 ### Notes
 
 * There are better ways to utilize logging besides just logger.dubug(). Please take a look at [any](http://docs.python-guide.org/en/latest/writing/logging/) [of](http://victorlin.me/posts/2012/08/26/good-logging-practice-in-python) [these](https://docs.python.org/2/library/logging.html) to get a sense of how this can be improved from my method.
+* There are certainly better ways to encapsulate bits of this code. Future versions will include methods.
 * Tweepy does much more than just send tweets. Check them out for more cool things.
 * I'm sure some of the things I'm doing are super inefficient but it works. Please [shoot me a note](mailto:rob.denton@registerguard.com) with tips or do a pull request or whatevs.
 
