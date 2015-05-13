@@ -6,15 +6,15 @@ In brief, this is a script that takes an RSS feed of stories, runs a link throug
 
 ## Table of contents
 
-* [[Getting started]]
-  * [[Assumptions]]
-  * [[Dependancies]]
-* [[Code walkthrough]]
-  * [[Notes]]
-  * [[Tweepy]]
-  * [[bit.ly]]
-* [[Setting up the cron]]
-* [[TL;DR]]
+* [Getting started](#getting-started)
+  * [Assumptions](#assumptions)
+  * [Dependancies](#dependencies)
+* [Code walkthrough](#code-walkthrough)
+  * [Notes](#notes)
+  * [Tweepy](#tweepy)
+  * [bitly_api](#bitly_api)
+* [Cron](#cron)
+* [TL;DR](#tl;dr)
 
 ## Getting started
 
