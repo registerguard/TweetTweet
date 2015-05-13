@@ -14,7 +14,7 @@ In brief, this is a script that takes an RSS feed of stories, runs a link throug
   * [Tweepy](#tweepy)
   * [bitly_api](#bitly_api)
 * [Cron](#cron)
-* [TL;DR](#tl;dr)
+* [TL;DR](#tldr)
 
 ## Getting started
 
@@ -152,7 +152,7 @@ And that's about it.
 * Tweepy does much more than just send tweets. Check them out for more cool things.
 * I'm sure some of the things I'm doing are super inefficient but it works. Please [shoot me a note](mailto:rob.denton@registerguard.com) with tips or do a pull request or whatevs.
 
-## Setting up the cron
+## Cron
 
 Once you have a script that does what you want, you need a way to run it.
 
