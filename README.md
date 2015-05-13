@@ -8,7 +8,7 @@ In brief, this is a script that takes an RSS feed of stories, runs a link throug
 
 * [Getting started](#getting-started)
   * [Assumptions](#assumptions)
-  * [Dependancies](#dependencies)
+  * [Dependancies](#dependancies)
 * [Code walkthrough](#code-walkthrough)
   * [Notes](#notes)
   * [Tweepy](#tweepy)
