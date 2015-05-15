@@ -188,6 +188,8 @@ The syntax I use is this:
 
 For more on crons check out [this tutorial](http://code.tutsplus.com/tutorials/scheduling-tasks-with-cron-jobs--net-8800).
 
+If you're interested in the RG's cron machine see [here](https://github.com/registerguard/tracker/wiki/Accessing-Wave,-the-cron-machine) (private).
+
 ## TL;DR
 
 ```
