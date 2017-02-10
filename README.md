@@ -1,3 +1,5 @@
+# Please note: This code is no longer in use by the RG, see: registerguard/rssonpublish [private] for new code
+
 # TweetTweet
 
 #### Please note this is the first draft and has not been edited yet. Sorry for typos, rambling, etc.
